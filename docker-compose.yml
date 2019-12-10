@@ -1,11 +1,27 @@
 version: '3.7'
 services:
-  frontend:
-    build: ./frontend
+  reverseproxy:  # see https://docs.traefik.io/#the-traefik-quickstart-using-docker
+    image: traefik:v2.0
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
     ports:
-      - "3000:3000"
-    depends_on:
-      - engine
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  # frontend:
+  #   build: ./frontend
+  #   ports:
+  #     - "3000:3000"
+  #   depends_on:
+  #     - engine
+  #   labels:
+  #     - "traefik.http.routers.frontend.rule=Host(`frontend`)"
+  #     - "traefik.http.routers.frontend.entrypoints=web"
 
   engine:
     build: ./engine
@@ -13,15 +29,29 @@ services:
       - discovery.type=single-node
       - cluster.name=docker-cluster
       - bootstrap.memory_lock=true
+      - 'ES_JAVA_OPTS=-Xms512m -Xmx512m'
     ulimits:
       memlock:
         soft: -1
         hard: -1
     ports:
-      - 9200:9200
+      - "9200:9200"
     volumes:
       - es-data:/usr/share/elasticsearch/data
     tty: true
+    labels:
+      - "traefik.http.routers.engine.rule=Host(`engine`)"
+      - "traefik.http.routers.engine.entrypoints=web"
 
+  eingineviewer:
+    image: appbaseio/dejavu:3.4.0
+    ports:
+      - "1358:1358"
+    links:
+      - engine
+    labels:
+      - "traefik.http.routers.eingineviewer.rule=Host(`eingineviewer`)"
+      - "traefik.http.routers.eingineviewer.entrypoints=web"
+  
 volumes:
   es-data:
