@@ -1,5 +1,4 @@
 Flask
-numpy==1.15.4
-Cython==0.29.6
-torch==1.0.1
+torch
+Cython
 transliterate==1.10.2

@@ -1,3 +1,11 @@
+if [ -z ${LASER} ] ; then 
+  echo "Please set the environment variable 'LASER'"
+  exit
+fi
+
+bdir="${LASER}"
+tools_ext="${bdir}/tools-external"
+
 InstallMecab () {
   cd ${tools_ext}
   if [ ! -x mecab/bin/mecab ] ; then

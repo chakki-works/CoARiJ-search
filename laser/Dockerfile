@@ -1,47 +1,43 @@
-FROM continuumio/miniconda3
+FROM continuumio/miniconda3 AS build
 
 RUN conda create -n env python=3.6
-RUN echo "source activate env" > ~/.bashrc
+ENV PATH /opt/conda/envs/env/bin:$PATH
 
 # Use C.UTF-8 locale to avoid issues with ASCII encoding
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
 
 # Install build dependency
-
-RUN apt-get -y update
-RUN apt-get -y install \
-        gcc \
-        g++ \
-        wget \
-        curl \
-        git \
-        make \
-        unzip
+RUN apt-get update \
+    && apt-get install --no-install-recommends -y gcc g++ wget curl git make unzip
 
 # Set the working directory to /app
 WORKDIR /app
 
-# Install packages
+# Install Python packages
 # version is specified in https://github.com/facebookresearch/LASER#dependencies
+RUN conda install -n env faiss-cpu -c pytorch -y
 COPY ./requirements.txt /app/requirements.txt
 RUN pip install --trusted-host pypi.python.org -r requirements.txt
-RUN conda install -n env faiss-cpu -c pytorch -y
 
-# Download LASER from FB
+# Download LASER and install dependencies
 RUN git clone https://github.com/facebookresearch/LASER.git
 
 ENV LASER /app/LASER
 COPY ./install_mecab.sh $LASER/install_mecab.sh
 
 WORKDIR $LASER
+RUN bash ./install_models.sh && ./install_external_tools.sh && ./install_mecab.sh
 
-# Download models
-RUN bash ./install_models.sh
+FROM continuumio/miniconda3 AS api
+COPY --from=build /opt/conda /opt/conda
+COPY --from=build /app/LASER /app/LASER
 
-# Install externals
-RUN bash ./install_external_tools.sh
-RUN bash ./install_mecab.sh
+RUN echo "source activate env" > ~/.bashrc
+ENV LC_ALL=C.UTF-8
+ENV LANG=C.UTF-8
+ENV LASER /app/LASER
+ENV PATH /opt/conda/envs/env/bin:$PATH
 
 WORKDIR /app
 RUN echo "Hello World" > test.txt
