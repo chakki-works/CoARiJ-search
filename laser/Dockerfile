@@ -2,6 +2,7 @@ FROM continuumio/miniconda3 AS build
 
 RUN conda create -n env python=3.6
 ENV PATH /opt/conda/envs/env/bin:$PATH
+ENV PYTHONDONTWRITEBYTECODE=true
 
 # Use C.UTF-8 locale to avoid issues with ASCII encoding
 ENV LC_ALL=C.UTF-8
@@ -16,7 +17,7 @@ WORKDIR /app
 
 # Install Python packages
 # version is specified in https://github.com/facebookresearch/LASER#dependencies
-RUN conda install -n env faiss-cpu -c pytorch -y
+RUN conda install -n env nomkl faiss-cpu -c pytorch -y && conda clean -afy
 COPY ./requirements.txt /app/requirements.txt
 RUN pip install --trusted-host pypi.python.org -r requirements.txt
 
