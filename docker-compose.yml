@@ -1,5 +1,13 @@
 version: '3.7'
 services:
+  laser:
+    build: ./laser
+    command: python api.py
+    ports:
+      - "8080:8080"
+    depends_on:
+      - engine
+
   frontend:
     build: ./frontend
     volumes:
