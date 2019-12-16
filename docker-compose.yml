@@ -19,7 +19,10 @@ services:
       - engine
 
   engine:
-    build: ./engine
+    build:
+      context: ./engine
+      args:
+        ES_JAVA_OPTS: ${ES_JAVA_OPTS}
     environment:
       - discovery.type=single-node
       - cluster.name=docker-cluster
@@ -29,7 +32,6 @@ services:
       - http.cors.allow-origin=http://localhost:1358,http://127.0.0.1:1358,http://localhost:3000,http://127.0.0.1:3000
       - http.cors.allow-headers=X-Requested-With,X-Auth-Token,Content-Type,Content-Length,Authorization
       - http.cors.allow-credentials=true
-      - 'ES_JAVA_OPTS=-Xms512m -Xmx512m'
     ulimits:
       memlock:
         soft: -1

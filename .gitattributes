@@ -1,6 +1,7 @@
 # Avoid ESLint error
 # https://eslint.org/docs/rules/linebreak-style
 
+*.sh text eol=lf
 *.js text eol=lf
 *.json text eol=lf
 *.vue text eol=lf
