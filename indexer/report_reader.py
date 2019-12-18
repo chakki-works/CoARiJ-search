@@ -41,10 +41,12 @@ class Report():
 
     @property
     def text_value(self):
-        if self.data_type == "nonnum:textBlockItemType":
+        if self.data_type == "nonnum:textBlockItemType" and \
+           ("。" in self.value or "." in self.value):
+            # Includes at least 1 sentence.
             return True
         else:
-            return False            
+            return False
 
     @property
     def json(self):
@@ -97,6 +99,12 @@ class ReportReader():
         return self._read_xml(self.xbrl_file)
 
     @property
+    def lang(self):
+        stem, ext = os.path.splitext(os.path.basename(self.xbrl_file))
+        lang = stem.split("_")[-2]
+        return lang
+
+    @property
     def namespaces(self):
         schema = self.xbrl.find("xbrli:xbrl")
         namespaces = {}
@@ -113,12 +121,13 @@ class ReportReader():
         edinet_code = self.xbrl.find("jpers-dei:es0000_005").text
         sec_code = self.xbrl.find("jpers-dei:es0000_006").text
         category = self.xbrl.find("jpers-dei:es0000_007").text
-        file_link = self.xbrl.find("jpers-cor:es0100_011").text
+        file_link = self.xbrl.find("jpers-cor:es0100_011").text.strip()
+        file_link = file_link if file_link.startswith("http") else ""
 
         namespaces = self.namespaces
         target = {}
         for k in namespaces:
-            if k.startswith("jpers"):
+            if k.startswith("jpers") and k != "jpers-dei":
                 target[namespaces[k]] = k
 
         tag_regex = re.compile(f"^es")
@@ -139,7 +148,7 @@ class ReportReader():
             # label
             label_path = self.taxonomy_root.joinpath(location + "_lab-ja.xml")
             label = self._read_xml(label_path).find(
-                        "link:label", {"id", f"label_{t.name}"})
+                        "link:label", {"id": f"label_{t.name}"})
             label_text = ""
             if label:
                 label_text = label.text

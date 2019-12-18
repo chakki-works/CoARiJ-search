@@ -1,4 +1,5 @@
 import numpy as np
+from tqdm import tqdm
 from elasticsearch import Elasticsearch
 import requests
 from elasticsearch.helpers import bulk
@@ -28,23 +29,24 @@ class ElasticRegister():
                       embedding_host="", aggregation="mean"):
         items = reader.read_report()
         actions = []
-        for r in items:
+        for r in tqdm(items):
             j = r.json
             if embedding_host and r.text_value:
                 payload = {
                     "q": j["value"],
-                    "lang": "ja"
+                    "lang": reader.lang
                 }
                 proxies = None
                 if "localhost" in embedding_host:
                     proxies = {"http": None, "https": None}
 
+                if not embedding_host.startswith("http"):
+                    embedding_host = "http://" + embedding_host
                 resp = requests.post(embedding_host + "/vectorize",
                                      data=payload, proxies=proxies)
                 resp = resp.json()
                 if "embedding" in resp:
                     embedding = np.array(resp["embedding"])
-                    print(embedding.shape)
                     if aggregation == "mean":
                         embedding = np.mean(embedding, axis=0)
                     elif aggregation == "max":

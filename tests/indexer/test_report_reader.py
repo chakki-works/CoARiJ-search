@@ -30,5 +30,5 @@ class TestReportReader(unittest.TestCase):
         r = ReportReader(self.xblr_test_file, self.taxonomy_path)
         tags = r.read_report()
         self.assertGreater(len(tags), 0)
-        print(tags)
-        raise Exception("X")
+        for t in tags:
+            self.assertTrue(t.title)
