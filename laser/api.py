@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, g
 import os
 import socket
 import tempfile
@@ -13,6 +13,21 @@ app = Flask(__name__)
 app.config['JSON_AS_ASCII'] = False
 
 
+def get_encoder():
+    if 'encoder' not in g:
+        model_dir = Path(__file__).parent / "LASER" / "models"
+        encoder_path = model_dir / "bilstm.93langs.2018-12-26.pt"
+        print(f' - Encoder: loading {encoder_path}')
+        encoder = SentenceEncoder(encoder_path,
+                                  max_sentences=None,
+                                  max_tokens=12000,
+                                  sort_kind='mergesort',
+                                  cpu=True)
+        g.encoder = encoder
+
+    return g.encoder
+
+
 @app.route("/")
 def root():
     print("/")
@@ -21,23 +36,22 @@ def root():
     return html.format(name=os.getenv("LASER", "world"), hostname=socket.gethostname())
 
 
-@app.route("/vectorize")
+@app.route("/vectorize", methods=['GET', 'POST'])
 def vectorize():
-    content = request.args.get('q')
-    lang = request.args.get('lang')
+    if request.method == "GET":
+        content = request.args.get('q')
+        lang = request.args.get('lang')
+    else:
+        content = request.form.get("q")
+        lang = request.form.get("lang")
+
     embedding = ''
     if lang is None or not lang:
         lang = "en"
     # encoder
     model_dir = Path(__file__).parent / "LASER" / "models"
-    encoder_path = model_dir / "bilstm.93langs.2018-12-26.pt"
     bpe_codes_path = model_dir / "93langs.fcodes"
-    print(f' - Encoder: loading {encoder_path}')
-    encoder = SentenceEncoder(encoder_path,
-                              max_sentences=None,
-                              max_tokens=12000,
-                              sort_kind='mergesort',
-                              cpu=True)
+    encoder = get_encoder()
     with tempfile.TemporaryDirectory() as tmp:
         tmpdir = Path(tmp)
         ifname = tmpdir / "content.txt"

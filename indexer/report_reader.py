@@ -37,7 +37,14 @@ class Report():
         self.data_type = data_type
         self.period = period
         self.period_start = period_start
-        self.vector = vector
+        self.vector = vector if vector is not None else [0] * 1024
+
+    @property
+    def text_value(self):
+        if self.data_type == "nonnum:textBlockItemType":
+            return True
+        else:
+            return False            
 
     @property
     def json(self):
@@ -99,7 +106,7 @@ class ReportReader():
 
         return namespaces
 
-    def read_report(self):
+    def read_report(self, embedding_server=""):
         company = self.xbrl.find("jpers-dei:es0000_002").text
         company_y = self.xbrl.find("jpers-dei:es0000_003").text
         company_en = self.xbrl.find("jpers-dei:es0000_004").text

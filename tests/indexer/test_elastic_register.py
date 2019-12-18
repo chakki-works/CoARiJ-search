@@ -27,11 +27,36 @@ class TestElasticsearch(unittest.TestCase):
                     environment={
                         "discovery.type": "single-node"
                     }, remove=True, detach=True)
-        time.sleep(20)
+
+        cls._api = cls.docker.containers.run(
+                    "icoxfog417/laser-api:latest",
+                    ports={
+                        "8080/tcp": "8080"
+                    },
+                    command="python api.py",
+                    remove=True, detach=True)
+
+        is_up = False
+        while not is_up:
+            try:
+                resp = requests.get("http://localhost:9200/_cluster/health",
+                                    params={
+                                        "wait_for_status": "yellow"
+                                    },
+                                    proxies={
+                                        "http": None,
+                                        "https": None
+                                    })
+                if resp.ok:
+                    is_up = True
+            except Exception as ex:
+                pass
+            time.sleep(10)
 
     @classmethod
     def tearDownClass(cls):
         cls._container.stop()
+        cls._api.stop()
         if cls.taxonomy_path:
             shutil.rmtree(cls.taxonomy_path)
 
@@ -52,9 +77,14 @@ class TestElasticsearch(unittest.TestCase):
         elr = ElasticRegister("localhost:9200")
         elr.create_index("example2", self.index_test_file, drop=True)
         r = ReportReader(self.xblr_test_file, self.taxonomy_path)
-        result = elr.register_xbrl("example2", r)
-        print(result)
-        count = elr.client.count(index="example2")
-        print(count)
-        self.assertGreater(count["count"], 0)
-        elr.drop_index("example2")
+        success, error = elr.register_xbrl("example2", r)
+        self.assertGreater(success, 0)
+        self.assertEqual(len(error), 0)
+
+    def test_register_document_with_embedding(self):
+        elr = ElasticRegister("localhost:9200")
+        elr.create_index("example2", self.index_test_file, drop=True)
+        r = ReportReader(self.xblr_test_file, self.taxonomy_path)
+        success, error = elr.register_xbrl("example2", r, "http://localhost:8080")
+        self.assertGreater(success, 0)
+        self.assertEqual(len(error), 0)
