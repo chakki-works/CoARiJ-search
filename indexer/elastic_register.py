@@ -44,9 +44,15 @@ class ElasticRegister():
                     embedding_host = "http://" + embedding_host
                 resp = requests.post(embedding_host + "/vectorize",
                                      data=payload, proxies=proxies)
-                resp = resp.json()
-                if "embedding" in resp:
-                    embedding = np.array(resp["embedding"])
+
+                result = {}
+                try:
+                    result = resp.json()
+                except Exception as ex:
+                    pass
+
+                if resp.ok and "embedding" in result:
+                    embedding = np.array(result["embedding"])
                     if aggregation == "mean":
                         embedding = np.mean(embedding, axis=0)
                     elif aggregation == "max":

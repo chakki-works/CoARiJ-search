@@ -105,6 +105,11 @@ class ReportReader():
         return lang
 
     @property
+    def category(self):
+        category = self.xbrl.find("jpers-dei:es0000_007").text
+        return category
+
+    @property
     def namespaces(self):
         schema = self.xbrl.find("xbrli:xbrl")
         namespaces = {}
@@ -120,7 +125,7 @@ class ReportReader():
         company_en = self.xbrl.find("jpers-dei:es0000_004").text
         edinet_code = self.xbrl.find("jpers-dei:es0000_005").text
         sec_code = self.xbrl.find("jpers-dei:es0000_006").text
-        category = self.xbrl.find("jpers-dei:es0000_007").text
+        category = self.category
         file_link = self.xbrl.find("jpers-cor:es0100_011").text.strip()
         file_link = file_link if file_link.startswith("http") else ""
 
