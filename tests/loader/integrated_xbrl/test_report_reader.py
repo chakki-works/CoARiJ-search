@@ -1,15 +1,15 @@
 import os
 import shutil
 import unittest
-from indexer.downloader import Downloader
-from indexer.report_reader import ReportReader
+from loader.integrated_xbrl.downloader import Downloader
+from loader.integrated_xbrl.report_reader import ReportReader
 
 
 class TestReportReader(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        root = os.path.join(os.path.dirname(__file__), "../data")
+        root = os.path.join(os.path.dirname(__file__), "./data")
         d = Downloader(root)
         cls.taxonomy_path = d.download_taxonomy()
 
@@ -20,7 +20,7 @@ class TestReportReader(unittest.TestCase):
 
     @property
     def xblr_test_file(self):
-        return os.path.join(os.path.dirname(__file__), "../data/example.xbrl")
+        return os.path.join(os.path.dirname(__file__), "./data/example_201901_ja_00000.xbrl")
 
     def test_namespace(self):
         r = ReportReader(self.xblr_test_file, self.taxonomy_path)

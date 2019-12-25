@@ -2,9 +2,9 @@ import os
 import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), "../"))
 from joblib import Parallel, delayed
-from indexer.downloader import Downloader
-from indexer.report_reader import ReportReader
-from indexer.elastic_register import ElasticRegister
+from loader.integrated_xbrl.downloader import Downloader
+from loader.integrated_xbrl.report_reader import ReportReader
+from loader.integrated_xbrl.elastic_register import ElasticRegister
 
 
 def register_doc(elastic_host, embedding_host,
@@ -27,7 +27,7 @@ def register_docs(elastic_host, embedding_host,
 
     if not os.path.exists(data_root):
         os.mkdir(data_root)
-    index_name = "reports"
+    index_name = "integrated"
 
     d = Downloader(data_root)
     data_path = d.download_data()

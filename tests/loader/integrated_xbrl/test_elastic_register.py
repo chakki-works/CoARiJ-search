@@ -4,16 +4,16 @@ import shutil
 import unittest
 import docker
 import requests
-from indexer.downloader import Downloader
-from indexer.report_reader import ReportReader
-from indexer.elastic_register import ElasticRegister
+from loader.integrated_xbrl.downloader import Downloader
+from loader.integrated_xbrl.report_reader import ReportReader
+from loader.integrated_xbrl.elastic_register import ElasticRegister
 
 
 class TestElasticsearch(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        root = os.path.join(os.path.dirname(__file__), "../data")
+        root = os.path.join(os.path.dirname(__file__), "./data")
         d = Downloader(root)
         cls.taxonomy_path = d.download_taxonomy()
 
@@ -62,11 +62,11 @@ class TestElasticsearch(unittest.TestCase):
 
     @property
     def xblr_test_file(self):
-        return os.path.join(os.path.dirname(__file__), "../data/example.xbrl")
+        return os.path.join(os.path.dirname(__file__), "./data/example_201901_ja_00000.xbrl")
 
     @property
     def index_test_file(self):
-        return os.path.join(os.path.dirname(__file__), "../data/index.json")
+        return os.path.join(os.path.dirname(__file__), "./data/index.json")
 
     def test_create_index(self):
         elr = ElasticRegister("localhost:9200")

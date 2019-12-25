@@ -3,7 +3,6 @@ from tqdm import tqdm
 from elasticsearch import Elasticsearch
 import requests
 from elasticsearch.helpers import bulk
-from indexer.report_reader import ReportReader
 
 
 class ElasticRegister():
